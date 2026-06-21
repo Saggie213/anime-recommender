@@ -22,6 +22,21 @@ app.use('/api/anime', animeRouter);
 app.use('/api/recommendations', recommendationRouter);
 app.use('/api/analytics', analyticsRouter);
 
+// Base landing route to handle the root URL "/"
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    message: 'Welcome to the Anime Recommendation System Backend API Gateway!',
+    endpoints: {
+      auth: '/api/auth',
+      anime: '/api/anime',
+      recommendations: '/api/recommendations',
+      analytics: '/api/analytics',
+      health: '/health'
+    }
+  });
+});
+
 // Base health endpoint
 app.get('/health', (req, res) => {
   res.json({

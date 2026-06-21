@@ -1,7 +1,7 @@
 import os
 from typing import List, Optional
-from contextlib import asynccontextmanager  # Added for lifespan handler
-from pathlib import Path  # Added for dynamic platform pathing
+from contextlib import asynccontextmanager  
+from pathlib import Path  
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -19,7 +19,6 @@ recommender = AnimeRecommender()
 search_engine = NLPSearchEngine(recommender)
 chatbot = AnimeChatbot(recommender, search_engine)
 
-# Modern FastAPI setup replacing the deprecated @app.on_event("startup")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Initializing recommendation models and indexes...")
@@ -29,7 +28,6 @@ async def lifespan(app: FastAPI):
         print("ML Service successfully initialized.")
     except Exception as e:
         print(f"Error during startup initialization: {e}")
-        # Dynamically build path so it prints correctly on Windows or Render (Linux)
         root_dir = Path(__file__).resolve().parent.parent
         expected_path = root_dir / "data" / "anime_seed.json"
         print(f"Model training failed. Please ensure {expected_path} exists.")
@@ -39,7 +37,7 @@ app = FastAPI(
     title="Anime Recommendation System ML Service",
     description="Python FastAPI Service for Content, Collaborative, Hybrid recommendations and semantic NLP queries.",
     version="1.0.0",
-    lifespan=lifespan  # Register lifespan context
+    lifespan=lifespan  
 )
 
 # Enable CORS for communication with Express backend
@@ -129,9 +127,6 @@ def chat_response(request: ChatRequest):
 
 @app.post("/train")
 def retrain_models():
-    """
-    Force models to reload data files and retrain (e.g. after database seeding/updates)
-    """
     try:
         recommender.load_data()
         recommender.train()
@@ -160,5 +155,8 @@ def explain_recommendation(anime_id: int, user_id: Optional[int] = None):
 
 if __name__ == "__main__":
     import uvicorn
-    # Use standard application string loading to match the deployment environments
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    # FIX: Read dynamic PORT assigned by Railway, fallback to 8000 for local development
+    port = int(os.getenv("PORT", 8000))
+    
+    # Run the application using the dynamic port assignment
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
