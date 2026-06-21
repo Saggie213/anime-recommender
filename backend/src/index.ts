@@ -5,6 +5,7 @@ import authRouter from './routes/auth';
 import animeRouter from './routes/anime';
 import recommendationRouter from './routes/recommendation';
 import analyticsRouter from './routes/analytics';
+import seedRouter, { autoSeedIfEmpty } from './routes/seed';
 
 // Load environment config
 dotenv.config();
@@ -21,6 +22,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/anime', animeRouter);
 app.use('/api/recommendations', recommendationRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/seed', seedRouter);
 
 // Base landing route to handle the root URL "/"
 app.get('/', (req, res) => {
@@ -49,4 +51,9 @@ app.get('/health', (req, res) => {
 // Start listening
 app.listen(PORT, () => {
   console.log(`[Express] Core Backend Server is running on port ${PORT}`);
+  
+  // Auto-seed database if empty (runs in background, doesn't block server)
+  autoSeedIfEmpty().catch(err => {
+    console.error('[Startup] Auto-seed error (non-fatal):', err);
+  });
 });
