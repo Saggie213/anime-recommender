@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Python
+ml-service/venv/
+ml-service/__pycache__/
+ml-service/src/__pycache__/
+*.pyc
+*.pyo
+
+# Database
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+
+# Build output
+frontend/dist/
+backend/dist/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vite cache
+frontend/node_modules/.vite/
+
+# Logs
+*.log
+npm-debug.log*
