@@ -3,7 +3,8 @@ builder = "nixpacks"
 buildCommand = "npm install && npx prisma generate && npm run build"
 
 [deploy]
+preDeployCommand = "npx prisma migrate deploy"
 startCommand = "npm run start"
-healthcheckPath = "/api/anime/trending"
+healthcheckPath = "/health"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
