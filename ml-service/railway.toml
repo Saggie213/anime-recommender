@@ -1,5 +1,5 @@
 [build]
-builder = "nixpacks"
+builder = "RAILPACK"
 buildCommand = "pip install -r requirements.txt"
 
 [deploy]
