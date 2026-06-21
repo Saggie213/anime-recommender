@@ -29,6 +29,16 @@ export interface Anime {
   is_fallback?: boolean;
 }
 
+export interface WatchlistItem {
+  userId: number;
+  animeId: number;
+  status: string;
+  rating: number | null;
+  watchedEpisodes: number;
+  updatedAt: string;
+  anime: Anime;
+}
+
 export interface User {
   id: number;
   username: string;
@@ -152,6 +162,9 @@ export const api = {
     request<Anime>(`/api/anime/${animeId}`),
 
   // ── Watchlist ────────────────────────────────────────────────────────────
+  getWatchlist: (): Promise<WatchlistItem[]> =>
+    request<WatchlistItem[]>('/api/anime/watchlist'),
+
   updateWatchlist: (animeId: number, status: string, rating: number | null, watchedEpisodes: number): Promise<any> =>
     request<any>('/api/anime/watchlist', {
       method: 'POST',
