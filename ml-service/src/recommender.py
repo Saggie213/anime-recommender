@@ -17,7 +17,7 @@ class AnimeRecommender:
         self.predicted_ratings_df = None
         self.user_means = None
         
-        # Paths
+        # Paths - Dynamically built to support both local Windows paths and production Linux paths
         self.data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data"))
         self.anime_path = os.path.join(self.data_dir, "anime_seed.json")
         self.ratings_path = os.path.join(self.data_dir, "mock_ratings.csv")
@@ -70,9 +70,17 @@ class AnimeRecommender:
             return
 
         print("Training Collaborative Filtering (SVD) Model...")
-        # Build pivot table user-item
+        
+        # ==========================================
+        # FIX: Deduplicate user-anime interactions
+        # ==========================================
+        # Keep the last instance of a rating if a user rated the same anime multiple times.
+        # This prevents the "Index contains duplicate entries, cannot reshape" exception.
+        cleaned_ratings = self.ratings_df.drop_duplicates(subset=['user_id', 'anime_id'], keep='last')
+
+        # Build pivot table user-item safely using the deduplicated data
         # Rows: user_id, Columns: anime_id, Values: rating
-        self.user_item_matrix = self.ratings_df.pivot(index='user_id', columns='anime_id', values='rating')
+        self.user_item_matrix = cleaned_ratings.pivot(index='user_id', columns='anime_id', values='rating')
         
         # Fill missing ratings with user average rating
         self.user_means = self.user_item_matrix.mean(axis=1)

@@ -1,5 +1,7 @@
 import os
 from typing import List, Optional
+from contextlib import asynccontextmanager  # Added for lifespan handler
+from pathlib import Path  # Added for dynamic platform pathing
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -12,10 +14,32 @@ from src.chatbot import AnimeChatbot
 
 load_dotenv()
 
+# Global variables for engines
+recommender = AnimeRecommender()
+search_engine = NLPSearchEngine(recommender)
+chatbot = AnimeChatbot(recommender, search_engine)
+
+# Modern FastAPI setup replacing the deprecated @app.on_event("startup")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Initializing recommendation models and indexes...")
+    try:
+        recommender.train()
+        search_engine.initialize()
+        print("ML Service successfully initialized.")
+    except Exception as e:
+        print(f"Error during startup initialization: {e}")
+        # Dynamically build path so it prints correctly on Windows or Render (Linux)
+        root_dir = Path(__file__).resolve().parent.parent
+        expected_path = root_dir / "data" / "anime_seed.json"
+        print(f"Model training failed. Please ensure {expected_path} exists.")
+    yield
+
 app = FastAPI(
     title="Anime Recommendation System ML Service",
     description="Python FastAPI Service for Content, Collaborative, Hybrid recommendations and semantic NLP queries.",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan  # Register lifespan context
 )
 
 # Enable CORS for communication with Express backend
@@ -26,22 +50,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Global variables for engines
-recommender = AnimeRecommender()
-search_engine = NLPSearchEngine(recommender)
-chatbot = AnimeChatbot(recommender, search_engine)
-
-@app.on_event("startup")
-def startup_event():
-    print("Initializing recommendation models and indexes...")
-    try:
-        recommender.train()
-        search_engine.initialize()
-        print("ML Service successfully initialized.")
-    except Exception as e:
-        print(f"Error during startup initialization: {e}")
-        print("Model training failed. Please ensure d:/python/anime-recommender/data/anime_seed.json exists.")
 
 # Pydantic schemas
 class RatingInput(BaseModel):
@@ -139,18 +147,12 @@ def retrain_models():
 
 @app.get("/explain/{anime_id}")
 def explain_recommendation(anime_id: int, user_id: Optional[int] = None):
-    # For explainability, we can fetch explanation for a given anime
-    # In a full setup, the caller passes user history. If not passed, we return general details
     try:
-        # Express backend handles loading user list and calling explain endpoint.
-        # Here we just implement the explanation fetcher
-        # If user_history is not provided, we can fetch ratings for user_id from ratings_df
         history = []
         if user_id is not None and recommender.ratings_df is not None:
             user_ratings = recommender.ratings_df[recommender.ratings_df['user_id'] == int(user_id)]
             for _, r in user_ratings.iterrows():
                 history.append({"anime_id": int(r['anime_id']), "rating": float(r['rating'])})
-                
         explanation = recommender.explain_recommendation(user_history=history, anime_id=anime_id)
         return {"explanation": explanation}
     except Exception as e:
@@ -158,4 +160,5 @@ def explain_recommendation(anime_id: int, user_id: Optional[int] = None):
 
 if __name__ == "__main__":
     import uvicorn
+    # Use standard application string loading to match the deployment environments
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
