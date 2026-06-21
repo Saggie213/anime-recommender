@@ -12,9 +12,9 @@
   "dependencies": {
     "clsx": "^2.1.0",
     "framer-motion": "^11.0.28",
-    "lucide-react": "^0.368.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "lucide-react": "^0.475.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "recharts": "^2.12.5",
     "serve": "^14.2.6",
     "tailwind-merge": "^2.2.2"
