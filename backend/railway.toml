@@ -4,6 +4,7 @@ buildCommand = "npm install && npx prisma generate && npm run build"
 
 [deploy]
 startCommand = "npm run start"
-healthcheckPath = "/api/anime/trending"
+preDeployCommand = "npx prisma migrate deploy"
+healthcheckPath = "/health"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
